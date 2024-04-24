@@ -14,7 +14,7 @@ use std::arch::asm;
 /// # Example
 ///
 /// ```
-/// use crate::thechinesegovernment::dinoxor;
+/// use thechinesegovernment::thechinesegovernment::dinoxor;
 /// 
 /// let result = dinoxor(0b11101011, 0b11111111);
 /// assert_eq!(result, 0b10100 )
