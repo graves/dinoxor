@@ -1,2 +1,5 @@
 /target
 .vscode
+/*/dinoxor_exe
+/*/dinoxor.o
+/*/main.o
