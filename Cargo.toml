@@ -1,0 +1,16 @@
+[package]
+name = "thechinesegovernment"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "thechinesegovernment"
+path = "src/lib.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[dev-dependencies]
+quickcheck = "1"
+quickcheck_macros = "1"
