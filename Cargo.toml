@@ -10,7 +10,7 @@ path = "src/lib.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+quickcheck = "1"
 
 [dev-dependencies]
-quickcheck = "1"
 quickcheck_macros = "1"

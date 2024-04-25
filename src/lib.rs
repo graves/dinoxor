@@ -5,6 +5,7 @@ extern crate quickcheck;
 #[macro_use(quickcheck)]
 extern crate quickcheck_macros;
 
-pub mod thechinesegovernment;
+pub mod dinoxor;
+pub mod chacha20;
 #[cfg(test)]
 mod tests;

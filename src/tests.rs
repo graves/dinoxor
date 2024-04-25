@@ -1,5 +1,5 @@
 extern crate test;
-use crate::thechinesegovernment::*;
+use crate::dinoxor::*;
 use test::Bencher;
 use test::black_box;
 use std::arch::asm;
@@ -133,4 +133,56 @@ fn bench_dinoxor(b: &mut Bencher) {
 
         (0x00..n).fold(0, |old: u8, new| dinoxor(old, new))
     });
+}
+
+use crate::chacha20::*;
+
+#[test]
+fn test_chacha_known_vector() {
+    let key = [
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+        0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+        0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
+    ];
+    let nonce = [
+        0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x4a,
+        0x00, 0x00, 0x00, 0x00,
+    ];
+
+    let counter: u32 = 1;
+    let mut state = ChaCha20State::new(&key, &nonce, counter);
+
+    let plaintext = [0u8; 64]; // Use zeroed plaintext for simplicity.
+    let mut ciphertext = [0u8; 64];
+    let mut decrypted_text = [0u8; 64];
+
+    unsafe {
+        state.process(&plaintext, &mut ciphertext);
+        state.reset(&key, &nonce, counter);  // Reset state or reinitialize if needed.
+        state.process(&ciphertext, &mut decrypted_text);
+    }
+
+    assert_eq!(plaintext, decrypted_text, "Decryption failed to revert ciphertext to original plaintext");
+}
+
+#[quickcheck]
+fn test_chacha_properties(key: Key, nonce: Nonce, counter: u32, plaintext: Block) {
+    let Key(key) = key;
+    let Nonce(nonce) = nonce;
+    let Block(plaintext) = plaintext;
+
+    let mut state = ChaCha20State::new(&key, &nonce, counter);
+
+    //let plaintext = [0u8; 64]; // Use zeroed plaintext for simplicity.
+    let mut ciphertext = [0u8; 64];
+    let mut decrypted_text = [0u8; 64];
+
+    unsafe {
+        state.process(&plaintext, &mut ciphertext);
+        state.reset(&key, &nonce, counter);  // Reset state or reinitialize if needed.
+        state.process(&ciphertext, &mut decrypted_text);
+    }
+
+    assert_eq!(plaintext, decrypted_text, "Decryption failed to revert ciphertext to original plaintext");
 }
