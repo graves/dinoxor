@@ -6,4 +6,4 @@
 
 I was somehow bored and stressed at the same time.
 
-![alt text](DougieAndBipolarBear.png))
+![alt text](DougieAndBipolarBear.png)

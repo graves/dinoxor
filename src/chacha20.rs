@@ -23,7 +23,6 @@ pub struct Nonce(pub [u8; 12]);
 pub struct Block(pub [u8; 64]);
 
 // Implement Arbitrary for each new type
-// Implement Arbitrary for each new type
 impl Arbitrary for Key {
     fn arbitrary(g: &mut Gen) -> Self {
         let mut arr = [0u8; 32];
@@ -58,22 +57,27 @@ impl ChaCha20State {
     /// Creates a new ChaCha20 state initialized with the key, nonce, and block counter.
     pub fn new(key: &[u8; 32], nonce: &[u8; 12], counter: u32) -> Self {
         let mut state = [
-            0x6170_7865, 0x3320_646e, 0x7962_2d32, 0x6b20_6574, // Constants
-            0, 0, 0, 0,                                           // 256-bit key
-            0, 0, 0, 0,
-            counter,                                              // Block counter
+            0x6170_7865,
+            0x3320_646e,
+            0x7962_2d32,
+            0x6b20_6574, // Constants
+            0,
+            0,
+            0,
+            0, // 256-bit key
+            0,
+            0,
+            0,
+            0,
+            counter,                                                      // Block counter
             u32::from_le_bytes([nonce[0], nonce[1], nonce[2], nonce[3]]), // Nonce
             u32::from_le_bytes([nonce[4], nonce[5], nonce[6], nonce[7]]),
             u32::from_le_bytes([nonce[8], nonce[9], nonce[10], nonce[11]]),
         ];
 
         for i in 0..8 {
-            state[4 + i] = u32::from_le_bytes([
-                key[4 * i],
-                key[4 * i + 1],
-                key[4 * i + 2],
-                key[4 * i + 3],
-            ]);
+            state[4 + i] =
+                u32::from_le_bytes([key[4 * i], key[4 * i + 1], key[4 * i + 2], key[4 * i + 3]]);
         }
 
         ChaCha20State { state }
@@ -82,28 +86,37 @@ impl ChaCha20State {
     /// Resets the state with a new key, nonce, and block counter.
     pub fn reset(&mut self, key: &[u8; 32], nonce: &[u8; 12], counter: u32) {
         self.state = [
-            0x6170_7865, 0x3320_646e, 0x7962_2d32, 0x6b20_6574, // Constants
-            0, 0, 0, 0,                                           // 256-bit key
-            0, 0, 0, 0,
-            counter,                                              // Block counter
+            0x6170_7865,
+            0x3320_646e,
+            0x7962_2d32,
+            0x6b20_6574, // Constants
+            0,
+            0,
+            0,
+            0, // 256-bit key
+            0,
+            0,
+            0,
+            0,
+            counter,                                                      // Block counter
             u32::from_le_bytes([nonce[0], nonce[1], nonce[2], nonce[3]]), // Nonce
             u32::from_le_bytes([nonce[4], nonce[5], nonce[6], nonce[7]]),
             u32::from_le_bytes([nonce[8], nonce[9], nonce[10], nonce[11]]),
         ];
 
         for i in 0..8 {
-            self.state[4 + i] = u32::from_le_bytes([
-                key[4 * i],
-                key[4 * i + 1],
-                key[4 * i + 2],
-                key[4 * i + 3],
-            ]);
+            self.state[4 + i] =
+                u32::from_le_bytes([key[4 * i], key[4 * i + 1], key[4 * i + 2], key[4 * i + 3]]);
         }
     }
 
     /// Encrypt or decrypt data using the ChaCha20 block function.
     pub unsafe fn process(&mut self, input: &[u8], output: &mut [u8]) {
-        assert_eq!(input.len(), output.len(), "Input and output must be the same length");
+        assert_eq!(
+            input.len(),
+            output.len(),
+            "Input and output must be the same length"
+        );
 
         let mut x = [
             vld1q_u32(&self.state[0]),
@@ -123,9 +136,10 @@ impl ChaCha20State {
         // Add back original state and serialize the state to the output
         for i in 0..4 {
             x[i] = vaddq_u32(x[i], vld1q_u32(&self.state[i * 4]));
-            let output_bytes = core::slice::from_raw_parts((&x[i] as *const uint32x4_t) as *const u8, 16);
+            let output_bytes =
+                core::slice::from_raw_parts((&x[i] as *const uint32x4_t) as *const u8, 16);
             for j in 0..16 {
-                output[i * 16 + j] = input[i * 16 + j] ^ output_bytes[j];  // XOR to produce output
+                output[i * 16 + j] = input[i * 16 + j] ^ output_bytes[j]; // XOR to produce output
             }
         }
     }
@@ -151,11 +165,10 @@ impl ChaCha20State {
         }
     }
 
-
     /// Perform the ChaCha20 diagonal round operation
     fn diagonal_round(&mut self, x: &mut [uint32x4_t; 4]) {
         self.quarter_round(x, 0, 1, 2, 3);
-    
+
         let temp = x[1];
         x[1] = x[2];
         x[2] = x[3];
