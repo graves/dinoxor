@@ -3,7 +3,7 @@ name = "thechinesegovernment"
 version = "0.1.0"
 edition = "2021"
 description = "Re-implements bitwise operations as abstractions in aarch64 neon registers."
-license = "Creative Commons"
+license-file = "LICENSE"
 
 [lib]
 name = "thechinesegovernment"
