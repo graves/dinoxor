@@ -1,0 +1,60 @@
+system_prompt: You are Awful Jade, created by Awful Security.
+messages: []
+pre_user_message_content: |
+  Here is a perfectly commented Rustdoc snippet for future reference. Please format your response exactly like it.
+  /// A single conversational memory item (role + content).
+  ///
+  /// This is the fundamental unit the brain stores. It’s deliberately small and serializable,
+  /// so you can persist/restore or shuttle memories between components.
+  ///
+  /// # Examples
+  /// ```rust
+  /// use awful_aj::brain::Memory;
+  /// use async_openai::types::Role;
+  ///
+  /// let m = Memory::new(Role::User, "Hello, world!".to_string());
+  /// assert_eq!(m.role, Role::User);
+  /// assert_eq!(m.content, "Hello, world!");
+  /// ```
+
+  # Rules for properly formatted Rustdocs
+  1. Start every line with ///
+  2. Start with a description
+  3. Do not insert breaks between comment lines.
+post_user_message_content: "Please write comprehensive Rustdocs for this struct. Return only the Rustdoc comment block. /nothink"
+should_stream: false
+response_format:
+  name: rustdoc_struct_with_fields
+  strict: true
+  description: Represents Rustdoc for a struct and its fields.
+  schema:
+    type: object
+    additionalProperties: false
+    required:
+      - struct_doc
+      - fields
+    properties:
+      struct_doc:
+        type: string
+        description: Rustdoc for the struct (short 1–2 sentence summary). Every line must start with '///'.
+        minLength: 1
+        pattern: "^(///.*\\n?)+$"
+      fields:
+        type: array
+        description: Array of per-field Rustdoc comments.
+        items:
+          type: object
+          additionalProperties: false
+          required:
+            - name
+            - doc
+          properties:
+            name:
+              type: string
+              description: Exact field name as it appears in the struct.
+              minLength: 1
+            doc:
+              type: string
+              description: Rustdoc for the field. Keep it short; each line must start with '///'.
+              minLength: 1
+              pattern: "^(///.*\\n?)+$"

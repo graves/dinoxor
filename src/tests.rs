@@ -4,11 +4,48 @@ use test::Bencher;
 use test::black_box;
 use std::arch::asm;
 
+/// Tests the `dinoxor` function by asserting that it behaves like XOR for two unsigned 8-bit integers.
+///
+/// Parameters:
+/// - `x`: An unsigned 8-bit integer (u8).
+/// - `y`: Another unsigned 8-bit integer (u8).
+///
+/// Returns:
+/// - `()` as a unit type.
+///
+/// Errors:
+/// - This function does not return an error, but the test may fail if `dinoxor` is not correctly implemented.
+///
+/// Safety:
+/// - The function operates on unsigned integers and is safe to use within the bounds of `u8`.
+///
+/// Notes:
+/// - This function is a simple test to verify that the `dinoxor` function behaves like XOR.
 #[quickcheck]
 fn test_dinoxor(x: u8, y: u8) {
     assert_eq!(dinoxor(x, y), x ^ y);
 }
 
+/// Handle a test for spreading bits to bytes in registers.
+///
+/// This function is designed to exercise the behavior of spreading `u8` values
+/// into bytes using inline assembly, specifically calling two helper functions:
+/// `_compress_bytes_to_bits` and `spread_bits_to_bytes`.
+///
+/// Parameters:
+/// - x: A u8 value to be spread into bytes.
+///
+/// Returns:
+/// - This function does not return a value; it performs an assertion to verify
+///   that the input and output match.
+///
+/// Safety:
+/// - The function uses `unsafe` inline assembly, which requires careful attention
+///   to ensure correct usage of registers and memory.
+///
+/// Notes:
+/// - The comment inside the inline `asm!` block warns that this test may become
+///   unreliable and suggests using a debugger for verification.
 #[quickcheck]
 fn test_spread_bits_to_bytes_registers(x: u8) {
     let mut res: u8;
@@ -29,6 +66,25 @@ fn test_spread_bits_to_bytes_registers(x: u8) {
     assert_eq!(x, res);
 }
 
+/// Tests the `prepare_xor_truth_table` function by invoking it via inline assembly, then verifies that the expected values are returned.
+///
+/// This test function uses `asm!` to call a C-like subroutine (`prepare_xor_truth_table`) and checks that the lower and upper 64-bit values match the expected bitmask pattern.
+///
+/// Parameters:
+/// - None
+///
+/// Returns:
+/// - `()` (no return value)
+///
+/// Errors:
+/// - None; the test is zero-failure.
+///
+/// Safety:
+/// - This function uses unsafe inline assembly and should be used with care, especially in production code. It is intended for testing purposes only.
+///
+/// Notes:
+/// - The function uses `asm!` to directly invoke a subroutine, which is not idiomatic in Rust and should be avoided unless necessary.
+/// - The test assumes that the `prepare_xor_truth_table` function is implemented and returns two 64-bit values.
 #[test]
 fn test_prepare_xor_truth_table() {
     let expected: u64 = 0x01_01_00_00_01_01_00;
@@ -50,6 +106,23 @@ fn test_prepare_xor_truth_table() {
     assert_eq!(upper, expected);
 }
 
+/// Test function to verify the preparation of multiplication tables using inline assembly.
+///
+/// This function calls `prepare_multiplication_table` via indirect address binding
+/// and verifies that the result matches expected values for lower and upper bounds.
+///
+/// Parameters:
+/// - None
+///
+/// Returns:
+/// - `Ok(())` on success, or error if inline assembly fails
+///
+/// Safety:
+/// - This function is marked as `unsafe` due to use of inline assembly.
+///
+/// Notes:
+/// - The test uses unsafe inline assembly with `asm!`, and assumes the correct
+///   value is returned.
 #[test]
 fn test_prepare_multiplication_table() {
     let expected_lower: u64 = 0x02_02_02_02_02_02_02_02;
@@ -72,6 +145,28 @@ fn test_prepare_multiplication_table() {
     assert_eq!(upper, expected_upper);
 }
 
+/// Handle the test for calculating XOR results using inline assembly.
+///
+/// This function tests the `calculate_xor_result` function by comparing its
+/// output against a directly computed XOR value. It uses inline assembly to
+/// perform bitwise operations on the input bytes and verifies that the result
+/// matches the expected value.
+///
+/// Parameters:
+/// - x: An 8-bit unsigned integer (u8) to be XORed with y.
+/// - y: An 8-bit unsigned integer (u8) to be XORed with x.
+///
+/// Returns:
+/// - `Ok(())` on successful test execution.
+///
+/// Safety:
+/// - This function is unsafe because it uses inline assembly, which has no
+///   inherent safety guarantees.
+///
+/// Notes:
+/// - The function uses the `asm!` macro to perform low-level bitwise operations.
+///   This approach is used for testing purposes and may not be suitable for general
+///   use.
 #[quickcheck]
 fn test_calculate_xor_result(x: u8, y: u8) {
     let expected_result = x ^ y;
@@ -117,6 +212,25 @@ fn test_calculate_xor_result(x: u8, y: u8) {
 
 }
 
+/// Benchmarks the XOR operation on a range of values.
+///
+/// This function benchmarks the performance of folding over a range with XOR, using a black-boxed value to ensure no compiler optimizations affect the result. It iterates over the range `(0x00..n)` and computes the XOR of all values, starting with an initial value of 0.
+///
+/// Parameters:
+/// - `b`: A mutable reference to a Bencher instance used for benchmarking.
+///
+/// Returns:
+/// - No return value; this function is intended to be used within a benchmarking context.
+///
+/// Errors:
+/// - None; this function is designed to be used in a benchmarking scenario and does not return errors.
+///
+/// Safety:
+/// - This function is safe to call as it only performs basic arithmetic operations and does not access external resources.
+///
+/// Notes:
+/// - The `black_box` macro is used to prevent compiler optimizations from altering the benchmark results.
+/// - The XOR operation (`^`) is performed between consecutive values in the range.
 #[bench]
 fn bench_xor(b: &mut Bencher) {
 
@@ -126,6 +240,30 @@ fn bench_xor(b: &mut Bencher) {
         (0x00..n).fold(0, |old: u8, new| old ^ new)
     });
 }
+/// Handle a benchmark for the `dinoxor` function.
+///
+/// This benchmarks how quickly and efficiently the `dinoxor` algorithm processes
+/// a sequence of inputs. It measures performance by iterating over a range and
+/// applying the `dinoxor` function to each pair of values.
+///
+/// Parameters:
+/// - `b`: A mutable reference to a Bencher, used to configure and run the benchmark.
+///
+/// Returns:
+/// - None. This function does not return a value; it performs the benchmarking.
+///
+/// Errors:
+/// - None. This function does not return an error; it is designed for benchmarking purposes.
+///
+/// Safety:
+/// - This function is safe to use in a multi-threaded context as it does not share
+///   state between iterations.
+///
+/// Notes:
+/// - The benchmark uses `black_box` to prevent compiler optimizations from
+///   interfering with the measurement.
+/// - The input range is defined as `0x00..n`, where `n` is a value determined by
+///   the benchmark setup.
 #[bench]
 fn bench_dinoxor(b: &mut Bencher) {
     b.iter(|| {
@@ -137,6 +275,31 @@ fn bench_dinoxor(b: &mut Bencher) {
 
 use crate::chacha20::*;
 
+/// Test function for ChaCha20 encryption/decryption with known vectors.
+///
+/// This test initializes a ChaCha20 state with specific key, nonce, and counter values,
+/// encrypts zeroed plaintext to ciphertext using `process()`, then decrypts the
+/// ciphertext back to plaintext with the same state. It asserts that decryption
+/// successfully reverts ciphertext to original plaintext.
+///
+/// Parameters:
+/// - None; function is private and self-contained.
+///
+/// Returns:
+/// - `Result<()>` on success, with no explicit return value in this context.
+///
+/// Errors:
+/// - Any I/O or state management errors during process/reset operations would
+///   propagate up, though not explicitly documented here.
+///
+/// Safety:
+/// - The function uses unsafe blocks with raw pointers and memory operations,
+///   so it should only be called in contexts where safe Rust guarantees are
+///   not required.
+///
+/// Notes:
+/// - This test uses zeroed plaintext for simplicity but could be extended
+///   to test with arbitrary data.
 #[test]
 fn test_chacha_known_vector() {
     let key = [
@@ -166,6 +329,28 @@ fn test_chacha_known_vector() {
     assert_eq!(plaintext, decrypted_text, "Decryption failed to revert ciphertext to original plaintext");
 }
 
+/// Tests the properties of ChaCha20 encryption and decryption.
+///
+/// This function initializes a `ChaCha20State` with the provided key, nonce, and counter.
+/// It then encrypts a plaintext block to ciphertext using `process`, resets the state,
+/// and decrypts the ciphertext back to plaintext. Finally, it asserts that
+/// decryption successfully reverts ciphertext to original plaintext.
+///
+/// Parameters:
+/// - `key`: The ChaCha20 key (64 bytes).
+/// - `nonce`: The ChaCha20 nonce (12 bytes).
+/// - `counter`: A 32-bit unsigned integer used to initialize the state.
+/// - `plaintext`: The plaintext block (16 bytes) to be encrypted and decrypted.
+///
+/// Returns:
+/// - `()` on success, indicating the test passed.
+///
+/// Safety:
+/// - This function uses raw pointers and may panic if invalid memory access occurs.
+///
+/// Notes:
+/// - The plaintext is assumed to be zeroed for simplicity in testing.
+/// - `unsafe` block ensures proper handling of memory and state.
 #[quickcheck]
 fn test_chacha_properties(key: Key, nonce: Nonce, counter: u32, plaintext: Block) {
     let Key(key) = key;
