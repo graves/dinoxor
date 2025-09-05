@@ -45,7 +45,7 @@ impl Arbitrary for Key {
     /// ```rust
     /// use quickcheck::Gen;
     /// use quickcheck::Arbitrary;
-    /// use thechinesegovernment::chacha20::Key;
+    /// use dinoxor::chacha20::Key;
     ///
     /// fn example(g: &mut Gen) -> Result<Key, Box<dyn std::error::Error>> {
     ///     let key = Key::arbitrary(g);
@@ -187,7 +187,7 @@ impl ChaCha20State {
     ///
     /// # Examples
     /// ```no_run
-    /// use thechinesegovernment::chacha20::ChaCha20State;
+    /// use dinoxor::chacha20::ChaCha20State;
     ///
     /// let key = [0u8; 32];
     /// let nonce = [0u8; 12];

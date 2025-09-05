@@ -17,7 +17,7 @@ use std::arch::asm;
 ///
 /// Examples:
 /// ```no_run
-/// use thechinesegovernment::dinoxor::dinoxor;
+/// use dinoxor::dinoxor::dinoxor;
 ///
 /// let result = dinoxor(0b11101011, 0b11111111);
 /// assert_eq!(result, 0b10100 );
@@ -74,7 +74,7 @@ pub fn dinoxor(x: u8, y: u8) -> u8 {
 ///
 /// # Examples:
 /// ```no_run
-/// use thechinesegovernment::dinoxor::_compress_bytes_to_bits;
+/// use dinoxor::dinoxor::_compress_bytes_to_bits;
 /// let v2 = unsafe { _compress_bytes_to_bits() };
 /// assert_eq!(v2, 0); // Example: if all bytes in v2 are zero
 ///
@@ -437,7 +437,7 @@ pub unsafe extern "C" fn prepare_multiplication_table() {
 ///
 /// # Example
 /// ```no_run
-/// use thechinesegovernment::dinoxor::calculate_xor_result;
+/// use dinoxor::dinoxor::calculate_xor_result;
 ///
 /// unsafe {
 ///     // ...prepare v2 (X indexes) and v1 (Y multipliers), and preload v0 with the XOR table...

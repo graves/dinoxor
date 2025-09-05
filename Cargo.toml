@@ -1,19 +1,19 @@
 [package]
-name = "thechinesegovernment"
+name = "dinoxor"
 version = "0.2.1"
 edition = "2021"
 description = "Re-implements bitwise operations as abstractions in aarch64 neon registers."
 
 homepage = "https://awfulsec.com/generative_testing_inline_assembly_in_rust.html"
-repository = "https://github.com/graves/thechinesegovernment.git"
-documentation = "https://docs.rs/crate/thechinesegovernment"
+repository = "https://github.com/graves/dinoxor.git"
+documentation = "https://docs.rs/crate/dinoxor"
 keywords = ["asm", "arm64", "aarch64", "eor"]
 
 license-file = "LICENSE"
 readme = "README.md"
 
 [lib]
-name = "thechinesegovernment"
+name = "dinoxor"
 path = "src/lib.rs"
 
 
