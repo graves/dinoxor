@@ -1,6 +1,6 @@
 [package]
 name = "thechinesegovernment"
-version = "0.3.1"
+version = "0.2.0"
 edition = "2021"
 description = "Re-implements bitwise operations as abstractions in aarch64 neon registers."
 
