@@ -3,6 +3,8 @@ extern crate quickcheck;
 use core::arch::aarch64::*;
 use quickcheck::{Arbitrary, Gen};
 
+use crate::dinoxor::dinoxor;
+
 /// ChaCha20 state consists of 16 words (u32)
 const STATE_LEN: usize = 16;
 
@@ -44,7 +46,7 @@ impl Arbitrary for Key {
     /// use quickcheck::Gen;
     /// use quickcheck::Arbitrary;
     /// use thechinesegovernment::chacha20::Key;
-    /// 
+    ///
     /// fn example(g: &mut Gen) -> Result<Key, Box<dyn std::error::Error>> {
     ///     let key = Key::arbitrary(g);
     ///     Ok(key)
@@ -72,7 +74,7 @@ impl Arbitrary for Nonce {
     ///
     /// Returns:
     /// - The newly generated `Nonce` instance.
-    /// 
+    ///
     /// Errors:
     /// This function does not return errors directly, but may encounter failures
     /// during the random generation process. These are typically handled internally by
@@ -186,7 +188,7 @@ impl ChaCha20State {
     /// # Examples
     /// ```no_run
     /// use thechinesegovernment::chacha20::ChaCha20State;
-    /// 
+    ///
     /// let key = [0u8; 32];
     /// let nonce = [0u8; 12];
     /// let counter = 0;
@@ -370,10 +372,10 @@ impl ChaCha20State {
             output.len(),
             "Input and output must be the same length"
         );
-    
+
         // Load the 16 u32 words of the ChaCha20 state into four NEON 128-bit registers (q0–q3).
         // Each vld1q_u32 loads 4 consecutive u32s (16 bytes).
-        // So: 
+        // So:
         //   x[0] = {state[0], state[1], state[2], state[3]}
         //   x[1] = {state[4], state[5], state[6], state[7]}
         //   x[2] = {state[8], state[9], state[10], state[11]}
@@ -384,8 +386,8 @@ impl ChaCha20State {
             vld1q_u32(&self.state[8]),
             vld1q_u32(&self.state[12]),
         ];
-    
-       // ──────────────────────────────────────────────────────────────────────────────
+
+        // ──────────────────────────────────────────────────────────────────────────────
         // ChaCha20 double-round diagram (Column round → Diagonal round)
         // This loop performs NUM_ROUNDS/“round-steps”, where each step is a *double round*
         // consisting of a Column round followed by a Diagonal round. For standard
@@ -466,12 +468,12 @@ impl ChaCha20State {
             // Column rounds: apply the quarter round function to each vertical column
             // of the state matrix (acting across registers).
             self.quarter_round(&mut x, 0, 1, 2, 3);
-    
+
             // Diagonal rounds: apply the quarter round function to the diagonals
             // of the state matrix (rotating words across registers).
             self.diagonal_round(&mut x);
         }
-    
+
         // After the rounds, add the original state back (ChaCha20's "feed-forward" step).
         //
         // ChaCha20 applies 20 rounds of the ARX (Add-Rotate-XOR) function to a copy
@@ -503,11 +505,11 @@ impl ChaCha20State {
             // vaddq_u32: 128-bit vector addition (element-wise, wrapping modulo 2^32).
             // Each lane in x[i] is incremented by the corresponding word from the original state.
             x[i] = vaddq_u32(x[i], vld1q_u32(&self.state[i * 4]));
-    
+
             // Treat x[i] (a uint32x4_t NEON vector) as 16 raw bytes for serialization.
             let output_bytes =
                 core::slice::from_raw_parts((&x[i] as *const uint32x4_t) as *const u8, 16);
-    
+
             // XOR keystream bytes with input bytes to produce ciphertext (or plaintext if decrypting).
             for j in 0..16 {
                 output[i * 16 + j] = input[i * 16 + j] ^ output_bytes[j];
@@ -623,5 +625,36 @@ impl ChaCha20State {
         x[1] = x[2];
         x[2] = x[3];
         x[3] = temp;
+    }
+
+    /// Same as [`process`] but uses [`dinoxor`] instead of `^`.
+    pub unsafe fn process_with_dinoxor(&mut self, input: &[u8], output: &mut [u8]) {
+        assert_eq!(
+            input.len(),
+            output.len(),
+            "Input and output must be the same length"
+        );
+
+        let mut x = [
+            vld1q_u32(&self.state[0]),
+            vld1q_u32(&self.state[4]),
+            vld1q_u32(&self.state[8]),
+            vld1q_u32(&self.state[12]),
+        ];
+
+        for _ in 0..NUM_ROUNDS {
+            self.quarter_round(&mut x, 0, 1, 2, 3);
+            self.diagonal_round(&mut x);
+        }
+
+        for i in 0..4 {
+            x[i] = vaddq_u32(x[i], vld1q_u32(&self.state[i * 4]));
+            let mut output_bytes = [0u8; 16];
+            vst1q_u8(output_bytes.as_mut_ptr(), vreinterpretq_u8_u32(x[i]));
+
+            for j in 0..16 {
+                output[i * 16 + j] = dinoxor(input[i * 16 + j], output_bytes[j]);
+            }
+        }
     }
 }
