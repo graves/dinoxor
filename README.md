@@ -55,8 +55,7 @@ assert_eq!(result, 0b10100);
 - **Dinoxor**: `~7,095.95 ns/iter`
 
 ## See Also
-- [GitHub Repository](https://github.com/graves/dinoxor)
-- [Dinoxor Documentation](https://awfulsec.com/dinoxor.html)
+- [Dinoxor Blog Post](https://awfulsec.com/dinoxor.html)
 - [ChaCha20 Implementation](https://github.com/graves/dinoxor/tree/main/src/chacha20.rs)
 
 ## Developer Notes
